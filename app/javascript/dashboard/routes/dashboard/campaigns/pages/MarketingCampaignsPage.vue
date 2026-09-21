@@ -58,7 +58,7 @@ const handleDelete = campaign => {
   >
     <template #action>
       <MarketingCampaignDialog
-        v-if="showMarketingCampaignDialog"
+        v-show="showMarketingCampaignDialog"
         @close="toggleMarketingCampaignDialog(false)"
       />
     </template>
