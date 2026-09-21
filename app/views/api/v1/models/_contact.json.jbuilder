@@ -9,11 +9,17 @@ if resource
   json.identifier resource.identifier
   json.thumbnail resource.avatar_url
   json.custom_attributes resource.custom_attributes
-  json.current_appointment_id resource.appointments.last.id if resource.appointments.present?
+  last_appointment = local_assigns[:preloaded_last_appointments]&.[](resource.id)
+  last_appointment ||= resource.appointments.last if local_assigns[:preloaded_last_appointments].nil?
+  json.current_appointment_id last_appointment&.id
+
   json.last_activity_at resource.last_activity_at.to_i if resource[:last_activity_at].present?
   json.created_at resource.created_at.to_i if resource[:created_at].present?
-  json.last_conversation_id resource.conversations.last&.display_id
-  json.last_conversation_inbox_id resource.conversations.last&.inbox_id
+
+  last_conversation = local_assigns[:preloaded_last_conversations]&.[](resource.id)
+  last_conversation ||= resource.conversations.last if local_assigns[:preloaded_last_conversations].nil?
+  json.last_conversation_id last_conversation&.display_id
+  json.last_conversation_inbox_id last_conversation&.inbox_id
   # we only want to output contact inbox when its /contacts endpoints
   if defined?(with_contact_inboxes) && with_contact_inboxes.present?
     json.contact_inboxes do

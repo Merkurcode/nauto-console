@@ -213,6 +213,28 @@ class Contact < ApplicationRecord
     find_by(email: email&.downcase)
   end
 
+  def self.preload_last_appointments(contact_ids)
+    contact_ids = contact_ids.uniq
+    return {} if contact_ids.empty?
+
+    last_appointment_ids = Appointment.where(contact_id: contact_ids)
+                                      .select('DISTINCT ON (contact_id) id')
+                                      .reorder(:contact_id, id: :desc)
+
+    Appointment.where(id: last_appointment_ids).index_by(&:contact_id)
+  end
+
+  def self.preload_last_conversations(contact_ids)
+    contact_ids = contact_ids.uniq
+    return {} if contact_ids.empty?
+
+    last_conversation_ids = Conversation.where(contact_id: contact_ids)
+                                        .select('DISTINCT ON (contact_id) id')
+                                        .reorder(:contact_id, id: :desc)
+
+    Conversation.where(id: last_conversation_ids).index_by(&:contact_id)
+  end
+
   private
 
   def assign_default_pipeline_status

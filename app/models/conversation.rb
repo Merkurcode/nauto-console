@@ -155,6 +155,37 @@ class Conversation < ApplicationRecord
 
   delegate :auto_resolve_after, to: :account
 
+  # Fetches the last non-deleted message for each conversation in a single
+  # query, keyed by conversation_id, to avoid an N+1 lookup when rendering
+  # conversation lists.
+  def self.preload_last_messages(conversations)
+    conversation_ids = conversations.map(&:id)
+    return {} if conversation_ids.empty?
+
+    last_message_ids = Message.where(conversation_id: conversation_ids)
+                              .select('DISTINCT ON (conversation_id) id')
+                              .reorder(:conversation_id, id: :desc)
+
+    Message.where(id: last_message_ids)
+           .includes(attachments: { file_attachment: [:blob] })
+           .index_by(&:conversation_id)
+  end
+
+  # Same as .preload_last_messages, but excludes activity messages (e.g.
+  # status change notes) to match Conversation#last_non_activity_message.
+  def self.preload_last_non_activity_messages(conversations)
+    conversation_ids = conversations.map(&:id)
+    return {} if conversation_ids.empty?
+
+    last_message_ids = Message.where(conversation_id: conversation_ids).where.not(message_type: :activity)
+                              .select('DISTINCT ON (conversation_id) id')
+                              .reorder(:conversation_id, id: :desc)
+
+    Message.where(id: last_message_ids)
+           .includes(attachments: { file_attachment: [:blob] })
+           .index_by(&:conversation_id)
+  end
+
   def ai_thread_id
     "#{account_id}_customer_#{display_id}_#{contact_id}"
   end
