@@ -12,6 +12,8 @@ import { ref, computed, onMounted, watch } from 'vue';
 import { useVuelidate } from '@vuelidate/core';
 import { requiredIf } from '@vuelidate/validators';
 import { useI18n } from 'vue-i18n';
+import { useAlert } from 'dashboard/composables';
+import { useMapGetter } from 'dashboard/composables/store';
 
 import Input from 'dashboard/components-next/input/Input.vue';
 import {
@@ -35,6 +37,10 @@ const props = defineProps({
       return true;
     },
   },
+  showVariablePicker: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const emit = defineEmits(['sendMessage', 'resetTemplate', 'back']);
@@ -42,6 +48,18 @@ const emit = defineEmits(['sendMessage', 'resetTemplate', 'back']);
 const { t } = useI18n();
 
 const processedParams = ref({});
+
+const contactAttributesGetter = useMapGetter('attributes/getContactAttributes');
+const contactCustomAttributes = computed(
+  () => contactAttributesGetter.value || []
+);
+
+const STANDARD_CONTACT_VARS = ['contact.name', 'contact.phone_number'];
+
+const copyToClipboard = text => {
+  navigator.clipboard.writeText(text);
+  useAlert(t('WHATSAPP_TEMPLATES.PARSER.VARIABLE_COPIED'));
+};
 
 const languageLabel = computed(() => {
   return `${t('WHATSAPP_TEMPLATES.PARSER.LANGUAGE')}: ${props.template.language || DEFAULT_LANGUAGE}`;
@@ -269,6 +287,53 @@ defineExpose({
               })
             "
           />
+        </div>
+
+        <div
+          v-if="showVariablePicker"
+          class="p-2 mb-2.5 rounded bg-n-blue-2 dark:bg-n-blue-3"
+        >
+          <p class="mb-1 text-xs font-medium text-n-slate-12">
+            {{ $t('WHATSAPP_TEMPLATES.PARSER.AVAILABLE_VARIABLES') }}
+          </p>
+          <div class="flex flex-wrap gap-2">
+            <code
+              v-for="variable in STANDARD_CONTACT_VARS"
+              :key="variable"
+              class="px-2 py-0.5 text-n-slate-12 bg-white rounded border cursor-pointer dark:bg-n-slate-3 border-n-weak/60 hover:bg-n-blue-4"
+              @click="copyToClipboard(`{{${variable}}}`)"
+            >
+              {{ '{' + '{' + variable + '}' + '}' }}
+            </code>
+            <code
+              v-for="attr in contactCustomAttributes"
+              :key="attr.attributeKey"
+              class="px-2 py-0.5 text-n-slate-12 bg-white rounded border cursor-pointer dark:bg-n-slate-3 border-n-iris-6 hover:bg-n-iris-4"
+              :title="attr.attributeDisplayName"
+              @click="copyToClipboard(`{{custom_attr.${attr.attributeKey}}}`)"
+            >
+              {{ '{' + '{' + 'custom_attr.' + attr.attributeKey + '}' + '}' }}
+            </code>
+          </div>
+        </div>
+
+        <div
+          v-if="showVariablePicker"
+          class="p-3 mb-2.5 rounded-lg bg-n-teal-2 dark:bg-n-teal-3 border border-n-teal-6"
+        >
+          <div class="flex items-center gap-2 mb-1">
+            <i class="i-lucide-eye text-n-teal-11 text-sm" />
+            <p class="text-xs font-medium text-n-teal-11">
+              {{ $t('WHATSAPP_TEMPLATES.PARSER.MESSAGE_PREVIEW') }}
+            </p>
+          </div>
+          <div
+            class="p-3 mt-2 bg-white rounded border dark:bg-n-slate-2 border-n-weak/60"
+          >
+            <p class="text-sm whitespace-pre-wrap text-n-slate-12">
+              {{ renderedTemplate }}
+            </p>
+          </div>
         </div>
       </div>
 

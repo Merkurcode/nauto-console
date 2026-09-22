@@ -1,6 +1,8 @@
 class Whatsapp::TemplateProcessorService
   pattr_initialize [:channel!, :template_params, :message]
 
+  MEDIA_HEADER_FORMATS = %w[IMAGE VIDEO DOCUMENT].freeze
+
   def call
     return [nil, nil, nil, nil] if template_params.blank?
 
@@ -41,7 +43,7 @@ class Whatsapp::TemplateProcessorService
     processed_params ||= template_params['processed_params']
     components = []
 
-    components.concat(process_header_components(processed_params))
+    components.concat(process_header_components(processed_params, template))
     components.concat(process_body_components(processed_params, template))
     components.concat(process_footer_components(processed_params))
     components.concat(process_button_components(processed_params))
@@ -49,31 +51,37 @@ class Whatsapp::TemplateProcessorService
     @template_params = components
   end
 
-  def process_header_components(processed_params)
+  def process_header_components(processed_params, template)
     return [] if processed_params['header'].blank?
 
-    header_params = build_header_params(processed_params['header'])
+    header_params = build_header_params(processed_params['header'], template)
     header_params.present? ? [{ type: 'header', parameters: header_params }] : []
   end
 
-  def build_header_params(header_data)
-    header_params = []
-    header_data.each do |key, value|
-      next if value.blank?
+  def build_header_params(header_data, template)
+    header_format = template_header_format(template)
 
-      if media_url_with_type?(key, header_data)
-        media_name = header_data['media_name']
-        media_param = parameter_builder.build_media_parameter(value, header_data['media_type'], media_name)
-        header_params << media_param if media_param
-      elsif key != 'media_type' && key != 'media_name'
-        header_params << parameter_builder.build_parameter(value)
+    if MEDIA_HEADER_FORMATS.include?(header_format)
+      media_param = parameter_builder.build_media_parameter(
+        header_data['media_url'], header_data['media_type'], header_data['media_name']
+      )
+
+      if media_param.blank?
+        raise ArgumentError, "Template '#{template['name']}' requires a #{header_format} header, but no valid media_url/media_type was provided"
       end
+
+      return [media_param]
     end
-    header_params
+
+    header_data.filter_map do |key, value|
+      next if value.blank? || %w[media_url media_type media_name].include?(key)
+
+      parameter_builder.build_parameter(value)
+    end
   end
 
-  def media_url_with_type?(key, header_data)
-    key == 'media_url' && header_data['media_type'].present?
+  def template_header_format(template)
+    template['components']&.find { |c| c['type'] == 'HEADER' }&.[]('format')
   end
 
   def process_body_components(processed_params, template)
