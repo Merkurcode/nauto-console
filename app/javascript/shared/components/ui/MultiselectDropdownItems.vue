@@ -37,6 +37,14 @@ export default {
       type: Array,
       default: () => ['name'],
     },
+    groupBy: {
+      type: String,
+      default: '',
+    },
+    noGroupLabel: {
+      type: String,
+      default: '',
+    },
   },
   emits: ['select'],
 
@@ -55,6 +63,20 @@ export default {
           return value?.toLowerCase().includes(searchTerm);
         });
       });
+    },
+    groupedOptions() {
+      if (!this.groupBy) {
+        return null;
+      }
+      const groups = {};
+      this.filteredOptions.forEach(option => {
+        const groupKey = option[this.groupBy] || this.noGroupLabel;
+        if (!groups[groupKey]) {
+          groups[groupKey] = [];
+        }
+        groups[groupKey].push(option);
+      });
+      return groups;
     },
     noResult() {
       return this.filteredOptions.length === 0 && this.search !== '';
@@ -94,36 +116,90 @@ export default {
     <div class="flex items-start justify-start flex-auto overflow-auto mt-2">
       <div class="w-full max-h-[10rem]">
         <WootDropdownMenu>
-          <WootDropdownItem v-for="option in filteredOptions" :key="option.id">
-            <NextButton
-              slate
-              :variant="isActive(option) ? 'faded' : 'ghost'"
-              trailing-icon
-              :icon="isActive(option) ? 'i-lucide-check' : ''"
-              class="w-full !px-2.5"
-              @click="() => onclick(option)"
+          <!-- Grouped options -->
+          <template v-if="groupedOptions">
+            <template
+              v-for="(groupOptions, groupName, index) in groupedOptions"
+              :key="groupName"
             >
-              <div
-                class="flex items-center justify-between w-full min-w-0 gap-2"
-              >
-                <span
-                  class="my-0 overflow-hidden text-sm leading-4 whitespace-nowrap text-ellipsis"
-                  :title="option.name"
-                >
-                  {{ option.name }}
-                </span>
-              </div>
-              <Avatar
-                v-if="hasThumbnail"
-                :src="option.thumbnail"
-                :name="option.name"
-                :status="option.availability_status"
-                :size="24"
-                hide-offline-status
-                rounded-full
+              <hr
+                v-if="index > 0"
+                class="my-2 border-t border-n-weak"
               />
-            </NextButton>
-          </WootDropdownItem>
+              <li class="px-2.5 py-1 text-xs text-n-slate-10 font-medium">
+                {{ groupName }}
+              </li>
+              <WootDropdownItem
+                v-for="option in groupOptions"
+                :key="option.id"
+              >
+                <NextButton
+                  slate
+                  :variant="isActive(option) ? 'faded' : 'ghost'"
+                  trailing-icon
+                  :icon="isActive(option) ? 'i-lucide-check' : ''"
+                  class="w-full !px-2.5"
+                  @click="() => onclick(option)"
+                >
+                  <div
+                    class="flex items-center justify-between w-full min-w-0 gap-2"
+                  >
+                    <span
+                      class="my-0 overflow-hidden text-sm leading-4 whitespace-nowrap text-ellipsis"
+                      :title="option.name"
+                    >
+                      {{ option.name }}
+                    </span>
+                  </div>
+                  <Avatar
+                    v-if="hasThumbnail"
+                    :src="option.thumbnail"
+                    :name="option.name"
+                    :status="option.availability_status"
+                    :size="24"
+                    hide-offline-status
+                    rounded-full
+                  />
+                </NextButton>
+              </WootDropdownItem>
+            </template>
+          </template>
+          <!-- Ungrouped options (default behavior) -->
+          <template v-else>
+            <WootDropdownItem
+              v-for="option in filteredOptions"
+              :key="option.id"
+            >
+              <NextButton
+                slate
+                :variant="isActive(option) ? 'faded' : 'ghost'"
+                trailing-icon
+                :icon="isActive(option) ? 'i-lucide-check' : ''"
+                class="w-full !px-2.5"
+                @click="() => onclick(option)"
+              >
+                <div
+                  class="flex items-center justify-between w-full min-w-0 gap-2"
+                >
+                  <span
+                    class="my-0 overflow-hidden text-sm leading-4 whitespace-nowrap text-ellipsis"
+                    :title="option.name"
+                  >
+                    {{ option.name }}
+                  </span>
+                </div>
+                <Avatar
+                  v-if="hasThumbnail"
+                  :src="option.thumbnail"
+                  :name="option.name"
+                  :status="option.availability_status"
+                  :size="24"
+                  hide-offline-status
+                  rounded-full
+                />
+              </NextButton>
+            </WootDropdownItem>
+          </template>
         </WootDropdownMenu>
         <h4
           v-if="noResult"

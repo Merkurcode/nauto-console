@@ -7,6 +7,7 @@
     "LEARN_MORE": "Aprender acerca de roles de usuario",
     "AGENT_TYPES": {
       "ADMINISTRATOR": "Administrador",
+      "SUPERVISOR": "Supervisor",
       "AGENT": "Agente"
     },
     "LIST": {
@@ -146,9 +147,9 @@
           "TEAM": "No se encontraron equipos"
         },
         "PLACEHOLDER": {
-          "AGENT": "Buscar agentes",
+          "AGENT": "Buscar por nombre o ubicación",
           "TEAM": "Buscar equipos",
-          "INPUT": "Búsqueda por agentes"
+          "INPUT": "Buscar agentes"
         }
       }
     }

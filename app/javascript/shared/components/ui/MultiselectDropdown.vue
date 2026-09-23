@@ -40,6 +40,14 @@ const props = defineProps({
     type: Array,
     default: () => ['name'],
   },
+  groupBy: {
+    type: String,
+    default: '',
+  },
+  noGroupLabel: {
+    type: String,
+    default: '',
+  },
 });
 
 const emit = defineEmits(['select']);
@@ -119,6 +127,8 @@ const hasValue = computed(() => {
           :input-placeholder="inputPlaceholder"
           :no-search-result="noSearchResult"
           :search-keys="searchKeys"
+          :group-by="groupBy"
+          :no-group-label="noGroupLabel"
           @select="onClickSelectItem"
         />
       </div>

@@ -277,6 +277,8 @@ export default {
           $t('AGENT_MGMT.MULTI_SELECTOR.SEARCH.PLACEHOLDER.AGENT')
         "
         :search-keys="['name', 'location_name']"
+        group-by="location_name"
+        :no-group-label="$t('CONVERSATION.CARD_CONTEXT_MENU.NO_LOCATION')"
         @select="onClickAssignAgent"
       />
     </div>
