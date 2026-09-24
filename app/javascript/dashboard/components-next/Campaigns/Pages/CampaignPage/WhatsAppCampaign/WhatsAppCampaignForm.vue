@@ -218,6 +218,7 @@ watch(
       v-if="selectedTemplate"
       ref="templateParserRef"
       :template="selectedTemplate"
+      show-variable-picker
     />
 
     <div class="flex flex-col gap-1">

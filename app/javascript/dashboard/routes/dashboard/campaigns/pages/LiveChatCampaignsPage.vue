@@ -51,7 +51,7 @@ const handleDelete = campaign => {
   >
     <template #action>
       <LiveChatCampaignDialog
-        v-if="showLiveChatCampaignDialog"
+        v-show="showLiveChatCampaignDialog"
         @close="toggleLiveChatCampaignDialog(false)"
       />
     </template>

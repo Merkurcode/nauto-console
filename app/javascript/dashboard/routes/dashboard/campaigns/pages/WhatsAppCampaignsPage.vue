@@ -54,7 +54,7 @@ const handleView = campaign => {
   >
     <template #action>
       <WhatsAppCampaignDialog
-        v-if="showWhatsAppCampaignDialog"
+        v-show="showWhatsAppCampaignDialog"
         @close="toggleWhatsAppCampaignDialog(false)"
       />
     </template>

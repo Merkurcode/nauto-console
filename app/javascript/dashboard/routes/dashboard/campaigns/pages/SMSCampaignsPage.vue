@@ -52,7 +52,7 @@ const handleDelete = campaign => {
   >
     <template #action>
       <SMSCampaignDialog
-        v-if="showSMSCampaignDialog"
+        v-show="showSMSCampaignDialog"
         @close="toggleSMSCampaignDialog(false)"
       />
     </template>

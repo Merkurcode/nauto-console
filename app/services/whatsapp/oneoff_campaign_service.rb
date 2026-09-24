@@ -91,9 +91,11 @@ class Whatsapp::OneoffCampaignService
   end
 
   def send_whatsapp_template_message(contact:, campaign_contact:)
+    resolved_template_params = resolve_template_params(contact)
+
     processor = Whatsapp::TemplateProcessorService.new(
       channel: channel,
-      template_params: campaign.template_params
+      template_params: resolved_template_params
     )
 
     name, namespace, lang_code, processed_parameters = processor.call
@@ -123,7 +125,7 @@ class Whatsapp::OneoffCampaignService
     begin
       contact_inbox = find_or_create_contact_inbox(contact)
       conversation = find_or_create_conversation(contact_inbox)
-      create_outgoing_message(conversation, contact, name, message_id)
+      create_outgoing_message(conversation, name, message_id, resolved_template_params)
       Rails.logger.info "Message record created in conversation #{conversation.id}"
     rescue StandardError => db_error
       # Log DB error but DON'T mark as failed since message was already sent successfully
@@ -172,9 +174,9 @@ class Whatsapp::OneoffCampaignService
     )
   end
 
-  def create_outgoing_message(conversation, contact, template_name, message_id)
+  def create_outgoing_message(conversation, template_name, message_id, resolved_template_params)
     # Generate the rendered template content
-    rendered_content = render_template_content(template_name, contact)
+    rendered_content = render_template_content(template_name, resolved_template_params)
 
     message = conversation.messages.create!(
       account_id: inbox.account_id,
@@ -191,12 +193,12 @@ class Whatsapp::OneoffCampaignService
     )
 
     # Attach media if present in template (image, video, document)
-    attach_template_media(message, template_name)
+    attach_template_media(message, resolved_template_params)
 
     message
   end
 
-  def render_template_content(template_name, _contact)
+  def render_template_content(template_name, resolved_template_params)
     # Find the template from channel's message_templates
     template = find_template(template_name)
     return "Template: #{template_name}" if template.blank?
@@ -210,7 +212,7 @@ class Whatsapp::OneoffCampaignService
 
     # Replace variables with actual values from processed_params
     rendered_text = template_text.dup
-    processed_params = campaign.template_params.dig('processed_params', 'body') || {}
+    processed_params = resolved_template_params.dig('processed_params', 'body') || {}
 
     # Replace {{1}}, {{2}}, etc. with actual values
     processed_params.each do |key, value|
@@ -220,9 +222,9 @@ class Whatsapp::OneoffCampaignService
     rendered_text
   end
 
-  def attach_template_media(message, _template_name)
+  def attach_template_media(message, resolved_template_params)
     # Get header media from template_params
-    header_params = campaign.template_params.dig('processed_params', 'header')
+    header_params = resolved_template_params.dig('processed_params', 'header')
     return if header_params.blank?
 
     media_url = header_params['media_url']
@@ -257,5 +259,9 @@ class Whatsapp::OneoffCampaignService
   def find_template(template_name)
     @template_cache ||= channel.message_templates.index_by { |t| "#{t['name']}:#{t['language']}" }
     @template_cache["#{template_name}:#{campaign.template_params['language']}"]
+  end
+
+  def resolve_template_params(contact)
+    Whatsapp::TemplateVariableResolver.new(contact: contact, account: campaign.account).resolve(campaign.template_params)
   end
 end
