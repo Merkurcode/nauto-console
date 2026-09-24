@@ -165,6 +165,7 @@ class AgentBots::ReengagementService
       trigger_started_at: @reengagement.trigger_started_at&.iso8601,
       conversation: @conversation.webhook_data,
       account: { id: @conversation.account_id, name: @conversation.account.name },
+      agent_bot_id: @agent_bot.id,
       agent_bot_config: {
         assistant_config: @agent_bot.assistant_config,
         agent_behavior_config: @agent_bot.agent_behavior_config,

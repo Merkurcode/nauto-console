@@ -859,7 +859,7 @@ class LeadRetargeting::SendFollowUpService
   def send_agent_bot_webhook(agent_bot, payload, idempotency_key)
     AgentBots::WebhookJob.perform_later(
       agent_bot.outgoing_url,
-      payload,
+      payload.merge(agent_bot_id: agent_bot.id),
       :lead_followup_ai_webhook,
       idempotency_key
     )

@@ -1,9 +1,13 @@
 class FaqItemPolicy < ApplicationPolicy
   def index?
+    return true if @user.is_a?(AgentBot)
+
     @account_user.administrator?
   end
 
   def show?
+    return true if @user.is_a?(AgentBot)
+
     @account_user.administrator?
   end
 

@@ -83,8 +83,17 @@ class Api::V1::AccountsController < Api::BaseController
   end
 
   def fetch_account
+    return fetch_account_for_bot if @resource.is_a?(AgentBot)
+
     @account = current_user.accounts.find(params[:id])
     @current_account_user = @account.account_users.find_by(user_id: current_user.id)
+  end
+
+  def fetch_account_for_bot
+    @account = Account.find(params[:id])
+    return if @resource.account_id == @account.id || @resource.agent_bot_inboxes.exists?(account_id: @account.id)
+
+    render_unauthorized('Bot is not authorized to access this account')
   end
 
   def account_params
@@ -147,7 +156,7 @@ class Api::V1::AccountsController < Api::BaseController
 
   def pundit_user
     {
-      user: current_user,
+      user: current_user || @resource,
       account: @account,
       account_user: @current_account_user
     }

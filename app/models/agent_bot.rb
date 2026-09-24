@@ -42,6 +42,14 @@ class AgentBot < ApplicationRecord
 
   before_save :strip_api_keys_from_behavior_config
 
+  # Secreto para firmar los webhooks del bot (HMAC). Se genera la primera vez que se necesita.
+  def ensure_secret!
+    return secret if secret.present?
+
+    update_columns(secret: SecureRandom.hex(32)) # rubocop:disable Rails/SkipsModelValidations
+    secret
+  end
+
   def has_openai_api_key? = openai_api_key.present?
   def has_google_api_key? = google_api_key.present?
 
