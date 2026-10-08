@@ -40,6 +40,7 @@ class FollowUpResultAnalysisJob < ApplicationJob
         completed_at: enrollment.completed_at&.iso8601
       },
       result_schema: sequence.result_schema,
+      agent_bot_id: agent_bot.id,
       agent_bot_config: {
         assistant_config: agent_bot.assistant_config,
         agent_behavior_config: agent_bot.agent_behavior_config,

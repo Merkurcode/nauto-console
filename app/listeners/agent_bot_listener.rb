@@ -74,13 +74,16 @@ class AgentBotListener < BaseListener
   def process_webhook_bot_event(agent_bot, payload, idempotency_key)
     return if agent_bot.outgoing_url.blank?
 
-    enriched = payload.merge(agent_bot_config: {
-                               assistant_config: agent_bot.assistant_config,
-                               agent_behavior_config: agent_bot.agent_behavior_config,
-                               has_openai_api_key: agent_bot.has_openai_api_key?,
-                               has_google_api_key: agent_bot.has_google_api_key?,
-                               has_pinecone_api_key: agent_bot.account&.pinecone_api_key.present?
-                             })
+    enriched = payload.merge(
+      agent_bot_id: agent_bot.id,
+      agent_bot_config: {
+        assistant_config: agent_bot.assistant_config,
+        agent_behavior_config: agent_bot.agent_behavior_config,
+        has_openai_api_key: agent_bot.has_openai_api_key?,
+        has_google_api_key: agent_bot.has_google_api_key?,
+        has_pinecone_api_key: agent_bot.account&.pinecone_api_key.present?
+      }
+    )
     AgentBots::WebhookJob.perform_later(agent_bot.outgoing_url, enriched, :agent_bot_webhook, idempotency_key)
   end
 

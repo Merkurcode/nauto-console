@@ -22,13 +22,26 @@ class Webhooks::Trigger
   private
 
   def perform_request
+    body = @payload.to_json
     RestClient::Request.execute(
       method: :post,
       url: @url,
-      payload: @payload.to_json,
-      headers: { :content_type => :json, :accept => :json, 'Idempotency-Key' => @idempotency_key },
+      payload: body,
+      headers: request_headers(body),
       timeout: webhook_timeout
     )
+  end
+
+  def request_headers(body)
+    headers = { :content_type => :json, :accept => :json, 'Idempotency-Key' => @idempotency_key }
+    agent_bot = signing_agent_bot
+    agent_bot ? headers.merge(AgentBots::WebhookSigner.headers(agent_bot, body)) : headers
+  end
+
+  # Los webhooks hacia un Agent Bot llevan agent_bot_id en el payload y se firman con su secret.
+  def signing_agent_bot
+    agent_bot_id = @payload[:agent_bot_id] || @payload['agent_bot_id']
+    AgentBot.find_by(id: agent_bot_id) if agent_bot_id.present?
   end
 
   def handle_error(error)

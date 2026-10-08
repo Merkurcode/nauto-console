@@ -637,6 +637,15 @@ Rails.application.routes.draw do
       end
     end
 
+    # Internal API for nauto-agents — authenticated via NAUTO_AGENTS_SERVICE_TOKEN
+    namespace :v1 do
+      namespace :internal do
+        resources :agent_bots, only: [] do
+          resource :credentials, only: [:show], controller: 'agent_bot_credentials'
+        end
+      end
+    end
+
     # Agent Bot API — authenticated via X-Bot-Token header
     namespace :agent_bot do
       resource :profile, only: [:show], controller: 'profiles'

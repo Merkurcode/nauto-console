@@ -131,7 +131,7 @@ class Enterprise::Api::V1::AccountsController < Api::BaseController
 
   def pundit_user
     {
-      user: current_user,
+      user: current_user || @resource,
       account: @account,
       account_user: @current_account_user
     }

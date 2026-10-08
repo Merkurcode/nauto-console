@@ -1,8 +1,15 @@
 module AccessTokenAuthHelper
   BOT_ACCESSIBLE_ENDPOINTS = {
     'api/v1/accounts/conversations' => %w[toggle_status toggle_priority create update custom_attributes],
-    'api/v1/accounts/conversations/messages' => ['create'],
+    'api/v1/accounts/conversations/messages' => %w[index create],
     'api/v1/accounts/conversations/assignments' => ['create'],
+    # nauto-agents: lectura de catálogos/perfil y datos del contacto con el token del bot
+    'api/v1/accounts' => ['show'],
+    'api/v1/accounts/contacts' => %w[show update],
+    'api/v1/accounts/faq_items' => %w[index show],
+    'api/v1/accounts/product_catalogs' => %w[index show],
+    'api/v1/accounts/marketing_campaigns' => ['index'],
+    'api/v1/accounts/inbox_members' => ['show'],
     'api/v1/accounts/inbox_message_templates' => %w[index create show destroy],
     'api/v1/accounts/lead_follow_up_sequences' => %w[submit_enrollment_result cancel_enrollment]
   }.freeze

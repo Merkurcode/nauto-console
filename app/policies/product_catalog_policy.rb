@@ -1,5 +1,7 @@
 class ProductCatalogPolicy < ApplicationPolicy
   def index?
+    return true if @user.is_a?(AgentBot)
+
     @account_user.administrator?
   end
 
@@ -8,6 +10,8 @@ class ProductCatalogPolicy < ApplicationPolicy
   end
 
   def show?
+    return true if @user.is_a?(AgentBot)
+
     @account_user.administrator?
   end
 
