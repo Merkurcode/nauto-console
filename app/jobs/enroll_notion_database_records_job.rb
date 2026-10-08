@@ -846,11 +846,7 @@ class EnrollNotionDatabaseRecordsJob < ApplicationJob
   end
 
   def post_first_contact_webhook(agent_bot, payload, channel, conversation_id)
-    HTTParty.post(agent_bot.outgoing_url, {
-      body: payload.to_json,
-      headers: { 'Content-Type' => 'application/json' },
-      timeout: 30
-    })
+    AgentBots::DirectWebhook.post(agent_bot, payload)
 
     Rails.logger.info "Sent #{channel} first contact request for conversation #{conversation_id}"
   end
