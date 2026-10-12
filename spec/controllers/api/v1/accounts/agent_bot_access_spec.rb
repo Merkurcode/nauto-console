@@ -15,7 +15,9 @@ RSpec.describe 'Agent bot token access', type: :request do
     'product catalogs' => ->(a, _i) { "/api/v1/accounts/#{a.id}/product_catalogs" },
     'marketing campaigns' => ->(a, _i) { "/api/v1/accounts/#{a.id}/marketing_campaigns" },
     'inbox members' => ->(a, i) { "/api/v1/accounts/#{a.id}/inbox_members/#{i.id}" },
-    'account profile' => ->(a, _i) { "/api/v1/accounts/#{a.id}" }
+    'account profile' => ->(a, _i) { "/api/v1/accounts/#{a.id}" },
+    'labels' => ->(a, _i) { "/api/v1/accounts/#{a.id}/labels" },
+    'custom attribute definitions' => ->(a, _i) { "/api/v1/accounts/#{a.id}/custom_attribute_definitions?attribute_model=contact_attribute" }
   }.each do |name, path|
     it "allows the bot to read #{name} of its account" do
       get path.call(account, inbox), headers: headers, as: :json
@@ -45,6 +47,29 @@ RSpec.describe 'Agent bot token access', type: :request do
 
   it 'keeps write endpoints closed for bots' do
     post "/api/v1/accounts/#{account.id}/faq_items", headers: headers, params: {}, as: :json
+
+    expect(response).to have_http_status(:unauthorized)
+  end
+
+  it 'allows the bot to read and set labels of a conversation and a contact of its account' do
+    create(:label, account: account, title: 'interesado')
+    contact = create(:contact, account: account)
+    conversation = create(:conversation, account: account, inbox: inbox, contact: contact)
+
+    post "/api/v1/accounts/#{account.id}/conversations/#{conversation.display_id}/labels",
+         params: { labels: ['interesado'] }, headers: headers, as: :json
+    expect(response).to have_http_status(:success)
+    get "/api/v1/accounts/#{account.id}/conversations/#{conversation.display_id}/labels", headers: headers, as: :json
+    expect(response.parsed_body['payload']).to eq(['interesado'])
+
+    post "/api/v1/accounts/#{account.id}/contacts/#{contact.id}/labels",
+         params: { labels: ['interesado'] }, headers: headers, as: :json
+    expect(response).to have_http_status(:success)
+    expect(contact.reload.label_list).to eq(['interesado'])
+  end
+
+  it 'does not let the bot create labels or definitions' do
+    post "/api/v1/accounts/#{account.id}/labels", params: { title: 'nueva' }, headers: headers, as: :json
 
     expect(response).to have_http_status(:unauthorized)
   end
