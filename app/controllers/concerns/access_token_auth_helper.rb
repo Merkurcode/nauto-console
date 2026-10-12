@@ -10,6 +10,11 @@ module AccessTokenAuthHelper
     'api/v1/accounts/product_catalogs' => %w[index show],
     'api/v1/accounts/marketing_campaigns' => ['index'],
     'api/v1/accounts/inbox_members' => ['show'],
+    # nauto-agents (lote 1): etiquetas, prioridad y atributos personalizados del contacto
+    'api/v1/accounts/labels' => ['index'],
+    'api/v1/accounts/conversations/labels' => %w[index create],
+    'api/v1/accounts/contacts/labels' => %w[index create],
+    'api/v1/accounts/custom_attribute_definitions' => ['index'],
     'api/v1/accounts/inbox_message_templates' => %w[index create show destroy],
     'api/v1/accounts/lead_follow_up_sequences' => %w[submit_enrollment_result cancel_enrollment]
   }.freeze
