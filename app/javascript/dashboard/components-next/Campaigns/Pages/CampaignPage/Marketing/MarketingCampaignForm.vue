@@ -66,12 +66,9 @@ const v$ = useVuelidate(validationRules, state);
 const isCreating = computed(() => formState.uiFlags.value.isCreating);
 const isSubmitDisabled = computed(() => v$.value.$invalid);
 
-const currentDateTime = computed(() => {
-  // Added to disable the scheduled at field from being set to the current time
-  const now = new Date();
-  const localTime = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
-  return localTime.toISOString().slice(0, 16);
-});
+// Campaigns can be registered after they started in Meta, so the start date
+// has no lower bound. The end date only needs to be after the start date.
+const endDateMin = computed(() => state.start_date || undefined);
 
 const getErrorMessage = (field, errorKey) => {
   const baseKey = 'CAMPAIGN.MARKETING.CREATE.FORM';
@@ -187,7 +184,6 @@ defineExpose({ prepareCampaignDetails, isSubmitDisabled });
       v-model="state.start_date"
       :label="t('CAMPAIGN.MARKETING.CREATE.FORM.START_DATE.LABEL')"
       type="datetime-local"
-      :min="currentDateTime"
       :placeholder="t('CAMPAIGN.MARKETING.CREATE.FORM.START_DATE.PLACEHOLDER')"
       :message="formErrors.startDate"
       :message-type="formErrors.startDate ? 'error' : 'info'"
@@ -197,7 +193,7 @@ defineExpose({ prepareCampaignDetails, isSubmitDisabled });
       v-model="state.end_date"
       :label="t('CAMPAIGN.MARKETING.CREATE.FORM.END_DATE.LABEL')"
       type="datetime-local"
-      :min="currentDateTime"
+      :min="endDateMin"
       :placeholder="t('CAMPAIGN.MARKETING.CREATE.FORM.END_DATE.PLACEHOLDER')"
       :message="formErrors.endDate"
       :message-type="formErrors.endDate ? 'error' : 'info'"
