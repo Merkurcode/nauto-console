@@ -73,4 +73,51 @@ RSpec.describe 'Agent bot token access', type: :request do
 
     expect(response).to have_http_status(:unauthorized)
   end
+
+  describe 'appointments (nauto-agents citas)' do
+    let(:owner) { create(:user, account: account, role: :agent) }
+    # Horario por defecto del asesor: lunes a viernes, 9 a 17 (UTC si no tiene zona horaria).
+    let(:next_monday_at_ten) { Time.zone.now.next_occurring(:monday).change(hour: 10) }
+    let(:contact) { create(:contact, account: account) }
+    let(:params) do
+      {
+        contact_id: contact.id,
+        appointment: {
+          scheduled_at: next_monday_at_ten.iso8601, appointment_type: 'physical_visit',
+          owner_id: owner.id, location: 'Clínica San Nicolás', description: 'Check Up Dental', inbox_id: inbox.id
+        }
+      }
+    end
+
+    it 'lets the bot create, list and cancel an appointment of its account' do
+      post "/api/v1/accounts/#{account.id}/appointments", params: params, headers: headers, as: :json
+      expect(response).to have_http_status(:created)
+      appointment_id = response.parsed_body['id']
+      expect(Appointment.find(appointment_id).owner_id).to eq(owner.id)
+
+      get "/api/v1/accounts/#{account.id}/appointments", headers: headers, as: :json
+      expect(response).to have_http_status(:success)
+      expect(response.parsed_body['payload'].map { |a| a['id'] }).to include(appointment_id)
+
+      post "/api/v1/accounts/#{account.id}/appointments/#{appointment_id}/cancel", headers: headers, as: :json
+      expect(response).to have_http_status(:success)
+      expect(Appointment.find(appointment_id)).to be_cancelled
+    end
+
+    it 'returns the validation details to the bot when the advisor is busy' do
+      post "/api/v1/accounts/#{account.id}/appointments", params: params, headers: headers, as: :json
+      post "/api/v1/accounts/#{account.id}/appointments", params: params, headers: headers, as: :json
+
+      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response.parsed_body.dig('details', 'scheduled_at').join).to include('already has an appointment')
+    end
+
+    it 'keeps delete closed for bots' do
+      appointment = Appointment.create!(contact: contact, account: account, owner: owner, appointment_type: 'physical_visit',
+                                        location: 'Clínica', scheduled_at: next_monday_at_ten)
+      delete "/api/v1/accounts/#{account.id}/appointments/#{appointment.id}", headers: headers, as: :json
+
+      expect(response).to have_http_status(:unauthorized)
+    end
+  end
 end

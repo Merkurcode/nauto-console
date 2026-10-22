@@ -16,7 +16,9 @@ module AccessTokenAuthHelper
     'api/v1/accounts/contacts/labels' => %w[index create],
     'api/v1/accounts/custom_attribute_definitions' => ['index'],
     'api/v1/accounts/inbox_message_templates' => %w[index create show destroy],
-    'api/v1/accounts/lead_follow_up_sequences' => %w[submit_enrollment_result cancel_enrollment]
+    'api/v1/accounts/lead_follow_up_sequences' => %w[submit_enrollment_result cancel_enrollment],
+    # nauto-agents (citas): el agente agenda en el módulo Citas y manda recordatorios
+    'api/v1/accounts/appointments' => %w[index show create cancel]
   }.freeze
 
   def ensure_access_token
