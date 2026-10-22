@@ -98,6 +98,7 @@ class Api::V1::Accounts::AppointmentsController < Api::V1::Accounts::BaseControl
 
     @appointment = contact.appointments.build(appointment_params)
     @appointment.account = Current.account
+    @appointment.skip_advisor_validations = Current.user.is_a?(AgentBot)
     @appointment.conversation = conversation if conversation
 
     if @appointment.save
@@ -119,6 +120,7 @@ class Api::V1::Accounts::AppointmentsController < Api::V1::Accounts::BaseControl
       return render_error('Cannot change appointment type after creation', :unprocessable_entity)
     end
 
+    @appointment.skip_advisor_validations = Current.user.is_a?(AgentBot)
     if @appointment.update(appointment_params)
       render :show
     else

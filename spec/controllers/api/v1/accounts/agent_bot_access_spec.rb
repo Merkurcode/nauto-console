@@ -104,12 +104,36 @@ RSpec.describe 'Agent bot token access', type: :request do
       expect(Appointment.find(appointment_id)).to be_cancelled
     end
 
-    it 'returns the validation details to the bot when the advisor is busy' do
+    it 'does not apply the advisor overlap or working hours to bot appointments' do
       post "/api/v1/accounts/#{account.id}/appointments", params: params, headers: headers, as: :json
       post "/api/v1/accounts/#{account.id}/appointments", params: params, headers: headers, as: :json
+      expect(response).to have_http_status(:created)
+
+      sunday = Time.zone.now.next_occurring(:sunday).change(hour: 16)
+      post "/api/v1/accounts/#{account.id}/appointments", headers: headers, as: :json,
+                                                          params: params.deep_merge(appointment: { scheduled_at: sunday.iso8601 })
+      expect(response).to have_http_status(:created)
+    end
+
+    it 'still validates the advisor schedule for appointments created by users' do
+      admin = create(:user, account: account, role: :administrator)
+      sunday = Time.zone.now.next_occurring(:sunday).change(hour: 16)
+      post "/api/v1/accounts/#{account.id}/appointments", headers: { api_access_token: admin.access_token.token }, as: :json,
+                                                          params: params.deep_merge(appointment: { scheduled_at: sunday.iso8601 })
 
       expect(response).to have_http_status(:unprocessable_entity)
-      expect(response.parsed_body.dig('details', 'scheduled_at').join).to include('already has an appointment')
+      expect(response.parsed_body.dig('details', 'scheduled_at').join).to include('does not work')
+    end
+
+    it 'lets the bot reschedule an appointment of its account' do
+      post "/api/v1/accounts/#{account.id}/appointments", params: params, headers: headers, as: :json
+      appointment_id = response.parsed_body['id']
+      later = next_monday_at_ten + 3.hours
+
+      patch "/api/v1/accounts/#{account.id}/appointments/#{appointment_id}", headers: headers, as: :json,
+                                                                              params: { appointment: { scheduled_at: later.iso8601 } }
+      expect(response).to have_http_status(:success)
+      expect(Appointment.find(appointment_id).scheduled_at).to be_within(1.second).of(later)
     end
 
     it 'keeps delete closed for bots' do
