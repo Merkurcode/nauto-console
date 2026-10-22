@@ -35,8 +35,12 @@ class Appointment < ApplicationRecord
   validate :ended_at_after_scheduled_at
   validate :type_specific_fields
   validate :appointment_type_enabled
-  validate :no_overlapping_appointments
-  validate :within_owner_working_hours
+  # Citas creadas o movidas por un Agent Bot (nauto-agents): la agenda real la lleva el negocio y un solo
+  # asesor responsable puede cubrir varias sucursales, así que no aplican el traslape ni el horario por asesor.
+  attr_accessor :skip_advisor_validations
+
+  validate :no_overlapping_appointments, unless: :skip_advisor_validations
+  validate :within_owner_working_hours, unless: :skip_advisor_validations
 
   # Callbacks
   before_create :generate_access_token

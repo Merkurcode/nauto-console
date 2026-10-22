@@ -6,6 +6,8 @@ class AppointmentPolicy < ApplicationPolicy
   end
 
   def update?
+    return true if @user.is_a?(AgentBot)
+
     @account_user.administrator? || @account_user.supervisor? || @account_user.agent?
   end
 
