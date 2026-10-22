@@ -1,5 +1,7 @@
 class AppointmentPolicy < ApplicationPolicy
   def index?
+    return true if @user.is_a?(AgentBot)
+
     @account_user.administrator? || @account_user.supervisor? || @account_user.agent?
   end
 
@@ -8,10 +10,14 @@ class AppointmentPolicy < ApplicationPolicy
   end
 
   def show?
+    return true if @user.is_a?(AgentBot)
+
     @account_user.administrator? || @account_user.supervisor? || @account_user.agent?
   end
 
   def create?
+    return true if @user.is_a?(AgentBot)
+
     @account_user.administrator? || @account_user.supervisor? || @account_user.agent?
   end
 
@@ -36,6 +42,8 @@ class AppointmentPolicy < ApplicationPolicy
   end
 
   def cancel?
+    return true if @user.is_a?(AgentBot)
+
     @account_user.administrator? || @account_user.supervisor? || @account_user.agent?
   end
 
