@@ -51,6 +51,28 @@ module Crm
           request(:get, "#{API_PATH}/Leads/#{lead_id}")
         end
 
+        # Convert a Lead to a Contact (and optionally a Deal/Account) in Zoho CRM.
+        # Uses Zoho's native Lead conversion endpoint.
+        #
+        # @param lead_id [String] Zoho lead ID to convert
+        # @param options [Hash] Conversion options
+        # @option options [Boolean] :overwrite (true) Overwrite existing Contact fields
+        # @option options [Boolean] :notify_lead_owner (true) Notify lead owner
+        # @option options [Boolean] :notify_new_entity_owner (true) Notify new entity owner
+        # @return [Hash] API response with Contacts/Deals/Accounts IDs
+        def convert_lead(lead_id, options = {})
+          body = {
+            data: [{
+              overwrite: options.fetch(:overwrite, true),
+              notify_lead_owner: options.fetch(:notify_lead_owner, true),
+              notify_new_entity_owner: options.fetch(:notify_new_entity_owner, true)
+              # Omitting Contacts key → Zoho auto-creates a new Contact from Lead data.
+              # Omitting Deals/Accounts → no Deal or Account is created.
+            }]
+          }
+          request(:post, "#{API_PATH}/Leads/#{lead_id}/actions/convert", body: body.to_json)
+        end
+
         # ============================================================================
         # CONTACT OPERATIONS
         # ============================================================================

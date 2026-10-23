@@ -11,9 +11,14 @@ const getters = useStoreGetters();
 
 const CRM_ACTION_OPTIONS = [
   { value: 'create_lead', label: 'CRM_FLOWS.ACTIONS_BUILDER.CREATE_LEAD' },
+  { value: 'update_lead', label: 'CRM_FLOWS.ACTIONS_BUILDER.UPDATE_LEAD' },
   {
     value: 'create_contact',
     label: 'CRM_FLOWS.ACTIONS_BUILDER.CREATE_CONTACT',
+  },
+  {
+    value: 'update_contact',
+    label: 'CRM_FLOWS.ACTIONS_BUILDER.UPDATE_CONTACT',
   },
   {
     value: 'create_opportunity',
@@ -53,7 +58,9 @@ const CRM_SUPPORT = {
   ],
   zoho: [
     'create_lead',
+    'update_lead',
     'create_contact',
+    'update_contact',
     'create_task',
     'create_call',
     'create_event',

@@ -54,6 +54,8 @@ module Crm
           update_appointment_status(params)
         when 'create_ticket'
           create_ticket(params)
+        when 'convert_lead'
+          convert_lead(params)
         else
           { success: false, error: "Unknown action type: #{action_type}" }
         end
@@ -231,6 +233,63 @@ module Crm
       rescue StandardError => e
         Rails.logger.error "Error updating lead in Zoho: #{e.message}"
         { success: false, error: e.message }
+      end
+
+      # Convert a Lead to a Contact using Zoho's native conversion API.
+      # Stores the resulting zoho_contact_id in the contact's external attributes.
+      #
+      # @param params [Hash] Parameters (contact_id required to look up zoho_lead_id)
+      # @return [Hash] Result with success status, contact_id, and lead_id
+      def convert_lead(params)
+        contact = find_contact_from_params(params)
+        return { success: false, error: 'Contact not found' } unless contact
+
+        lead_id = contact.additional_attributes&.dig('external', 'zoho_lead_id')
+        return { success: false, error: 'No zoho_lead_id found for this contact' } unless lead_id
+
+        response = @lead_client.convert_lead(lead_id)
+
+        if response && response['data']&.any?
+          result = response['data'].first
+          zoho_contact_id = result.dig('Contacts', 'id')
+
+          if zoho_contact_id
+            store_external_id(contact, zoho_contact_id, 'zoho_contact_id')
+            Rails.logger.info "Lead #{lead_id} converted to Contact #{zoho_contact_id} in Zoho"
+            { success: true, contact_id: zoho_contact_id, lead_id: lead_id, action: 'converted' }
+          else
+            { success: false, error: 'Conversion succeeded but no Contact ID returned', response: response }
+          end
+        else
+          { success: false, error: 'Failed to convert lead', response: response }
+        end
+      rescue StandardError => e
+        # Lead was already converted in a previous call but zoho_contact_id was never stored.
+        # Search Zoho by email/phone to recover the Contact ID and store it.
+        if e.message.include?('ID_ALREADY_CONVERTED')
+          Rails.logger.info "Lead #{lead_id} already converted — recovering Contact ID from Zoho search"
+          zoho_contact_id = recover_contact_id_after_conversion(contact)
+          if zoho_contact_id
+            store_external_id(contact, zoho_contact_id, 'zoho_contact_id')
+            Rails.logger.info "Recovered and stored Contact ID #{zoho_contact_id} for lead #{lead_id}"
+            return { success: true, contact_id: zoho_contact_id, lead_id: lead_id, action: 'recovered' }
+          end
+        end
+        Rails.logger.error "Error converting lead in Zoho: #{e.message}"
+        { success: false, error: e.message }
+      end
+
+      def recover_contact_id_after_conversion(contact)
+        search_term = contact.email.presence || contact.phone_number.presence
+        return nil unless search_term
+
+        response = @lead_client.search_contacts("((Email:equals:#{contact.email}))" ) if contact.email.present?
+        response ||= @lead_client.search_contacts("((Phone:equals:#{contact.phone_number}))") if contact.phone_number.present?
+
+        response&.dig('data', 0, 'id')
+      rescue StandardError => e
+        Rails.logger.error "Error recovering contact ID from Zoho: #{e.message}"
+        nil
       end
 
       # ============================================================================
