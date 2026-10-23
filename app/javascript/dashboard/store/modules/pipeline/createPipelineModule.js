@@ -215,7 +215,7 @@ export const createPipelineModule = ({
       }
     },
 
-    createColumn: async ({ commit, dispatch }, name) => {
+    createColumn: async ({ commit }, name) => {
       commit('SET_UI_FLAG', { isCreating: true });
       try {
         const response = await PipelineStatusesAPI.create({
@@ -228,7 +228,6 @@ export const createPipelineModule = ({
           items: [],
           itemsLoaded: false,
         });
-        dispatch('fetchColumnItems', response.data.id);
       } finally {
         commit('SET_UI_FLAG', { isCreating: false });
       }
