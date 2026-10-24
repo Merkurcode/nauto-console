@@ -12,8 +12,8 @@
     "NO_INBOX_2": " para empezar",
     "NO_INBOX_AGENT": "¡Uh Oh! Parece que no eres parte de ninguna bandeja de entrada. Por favor, contacta con tu administrador",
     "SEARCH_MESSAGES": "Buscar mensajes en conversaciones",
-    "VIEW_ORIGINAL": "View original",
-    "VIEW_TRANSLATED": "View translated",
+    "VIEW_ORIGINAL": "Ver original",
+    "VIEW_TRANSLATED": "Ver traducido",
     "EMPTY_STATE": {
       "CMD_BAR": "para abrir el menú de comandos",
       "KEYBOARD_SHORTCUTS": "para ver los atajos del teclado"
@@ -36,11 +36,11 @@
     "API_HOURS_WINDOW": "Solo puedes responder a esta conversación dentro de {hours} horas",
     "NOT_ASSIGNED_TO_YOU": "Esta conversación no te está asignada. ¿Quieres asignarla a ti mismo?",
     "ASSIGN_TO_ME": "Asignar a mi",
-    "BOT_HANDOFF_MESSAGE": "You are responding to a conversation which is currently handled by an assistant or a bot.",
-    "BOT_HANDOFF_ACTION": "Mark open and assign to you",
-    "BOT_HANDOFF_REOPEN_ACTION": "Mark conversation open",
-    "BOT_HANDOFF_SUCCESS": "Conversation has been handed over to you",
-    "BOT_HANDOFF_ERROR": "Failed to take over the conversation. Please try again.",
+    "BOT_HANDOFF_MESSAGE": "Estás respondiendo a una conversación que actualmente está siendo gestionada por un asistente o un bot.",
+    "BOT_HANDOFF_ACTION": "Marcar como abierta y asignarte",
+    "BOT_HANDOFF_REOPEN_ACTION": "Marcar conversación como abierta",
+    "BOT_HANDOFF_SUCCESS": "La conversación ha sido transferida a ti",
+    "BOT_HANDOFF_ERROR": "No se pudo tomar el control de la conversación. Por favor, inténtalo de nuevo.",
     "TWILIO_WHATSAPP_CAN_REPLY": "Sólo puede responder a esta conversación usando una plantilla de mensaje debido a",
     "TWILIO_WHATSAPP_24_HOURS_WINDOW": "Restricción de la ventana de mensajes de 24 horas",
     "OLD_INSTAGRAM_INBOX_REPLY_BANNER": "Esta cuenta de Instagram fue migrada a la nueva bandeja de entrada del canal Instagram. Todos los nuevos mensajes aparecerán allí. Ya no podrás enviar mensajes de esta conversación.",
@@ -73,15 +73,15 @@
       "HIDE_LABELS": "Ocultar etiquetas"
     },
     "VOICE_CALL": {
-      "INCOMING_CALL": "Incoming call",
-      "OUTGOING_CALL": "Outgoing call",
-      "CALL_IN_PROGRESS": "Call in progress",
-      "NO_ANSWER": "No answer",
-      "MISSED_CALL": "Missed call",
-      "CALL_ENDED": "Call ended",
-      "NOT_ANSWERED_YET": "Not answered yet",
-      "THEY_ANSWERED": "They answered",
-      "YOU_ANSWERED": "You answered"
+      "INCOMING_CALL": "Llamada entrante",
+      "OUTGOING_CALL": "Llamada saliente",
+      "CALL_IN_PROGRESS": "Llamada en progreso",
+      "NO_ANSWER": "Sin respuesta",
+      "MISSED_CALL": "Llamada perdida",
+      "CALL_ENDED": "Llamada finalizada",
+      "NOT_ANSWERED_YET": "Aún sin respuesta",
+      "THEY_ANSWERED": "Contestaron",
+      "YOU_ANSWERED": "Contestaste"
     },
     "HEADER": {
       "RESOLVE_ACTION": "Resolver",
@@ -163,6 +163,7 @@
       "ASSIGN_AGENT": "Asignar un agente",
       "ASSIGN_LABEL": "Asignar etiqueta",
       "AGENTS_LOADING": "Cargando agentes...",
+      "NO_LOCATION": "Sin ubicación",
       "ASSIGN_TEAM": "Asignar equipo",
       "DELETE": "Eliminar conversación",
       "OPEN_IN_NEW_TAB": "Abrir en nueva pestaña",
@@ -233,11 +234,11 @@
         }
       },
       "QUOTED_REPLY": {
-        "ENABLE_TOOLTIP": "Include quoted email thread",
-        "DISABLE_TOOLTIP": "Don't include quoted email thread",
-        "REMOVE_PREVIEW": "Remove quoted email thread",
-        "COLLAPSE": "Collapse preview",
-        "EXPAND": "Expand preview"
+        "ENABLE_TOOLTIP": "Incluir hilo de correo citado",
+        "DISABLE_TOOLTIP": "No incluir hilo de correo citado",
+        "REMOVE_PREVIEW": "Eliminar hilo de correo citado",
+        "COLLAPSE": "Contraer vista previa",
+        "EXPAND": "Expandir vista previa"
       }
     },
     "VISIBLE_TO_AGENTS": "Nota privada: solo visible para ti y tu equipo",
@@ -359,7 +360,7 @@
     "SELECT": {
       "PLACEHOLDER": "Ninguna"
     },
-    "RESUME": {
+    "SUMMARY": {
       "TITLE": "Resumen de conversación"
     },
     "SUMMARY": {
@@ -397,22 +398,22 @@
       "LAST_UPDATED": "Última actualización"
     },
     "SHOPIFY": {
-      "ORDER_ID": "Order #{id}",
-      "ERROR": "Error loading orders",
-      "NO_SHOPIFY_ORDERS": "No orders found",
+      "ORDER_ID": "Pedido #{id}",
+      "ERROR": "Error al cargar pedidos",
+      "NO_SHOPIFY_ORDERS": "No se encontraron pedidos",
       "FINANCIAL_STATUS": {
-        "PENDING": "Pendientes",
-        "AUTHORIZED": "Authorized",
-        "PARTIALLY_PAID": "Partially Paid",
-        "PAID": "Paid",
-        "PARTIALLY_REFUNDED": "Partially Refunded",
-        "REFUNDED": "Refunded",
-        "VOIDED": "Voided"
+        "PENDING": "Pendiente",
+        "AUTHORIZED": "Autorizado",
+        "PARTIALLY_PAID": "Parcialmente pagado",
+        "PAID": "Pagado",
+        "PARTIALLY_REFUNDED": "Parcialmente reembolsado",
+        "REFUNDED": "Reembolsado",
+        "VOIDED": "Anulado"
       },
       "FULFILLMENT_STATUS": {
-        "FULFILLED": "Fulfilled",
-        "PARTIALLY_FULFILLED": "Partially Fulfilled",
-        "UNFULFILLED": "Unfulfilled"
+        "FULFILLED": "Completado",
+        "PARTIALLY_FULFILLED": "Parcialmente completado",
+        "UNFULFILLED": "Sin completar"
       }
     }
   },
