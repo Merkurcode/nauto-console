@@ -113,6 +113,10 @@ RSpec.describe 'Agent bot token access', type: :request do
       post "/api/v1/accounts/#{account.id}/appointments", headers: headers, as: :json,
                                                           params: params.deep_merge(appointment: { scheduled_at: sunday.iso8601 })
       expect(response).to have_http_status(:created)
+
+      # Cancelar una cita fuera del horario del asesor también pasa (antes el cambio de estado revalidaba el horario).
+      post "/api/v1/accounts/#{account.id}/appointments/#{response.parsed_body['id']}/cancel", headers: headers, as: :json
+      expect(response).to have_http_status(:success)
     end
 
     it 'still validates the advisor schedule for appointments created by users' do
