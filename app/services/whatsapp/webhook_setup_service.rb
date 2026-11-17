@@ -12,7 +12,8 @@ class Whatsapp::WebhookSetupService
     # Register phone number if either condition is met:
     # 1. Phone number is not verified (code_verification_status != 'VERIFIED')
     # 2. Phone number needs registration (pending provisioning state)
-    register_phone_number if !phone_number_verified? || phone_number_needs_registration?
+    # Coexistence numbers are already registered on the WhatsApp Business app and must not be registered again
+    register_phone_number if !on_business_app? && (!phone_number_verified? || phone_number_needs_registration?)
 
     setup_webhook
   end
@@ -68,6 +69,10 @@ class Whatsapp::WebhookSetupService
     phone_number = @channel.phone_number
 
     "#{frontend_url}/webhooks/whatsapp/#{phone_number}"
+  end
+
+  def on_business_app?
+    @api_client.on_business_app?(@channel.provider_config['phone_number_id'])
   end
 
   def phone_number_verified?

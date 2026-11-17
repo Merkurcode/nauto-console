@@ -60,6 +60,17 @@ class Whatsapp::FacebookApiClient
     data['code_verification_status'] == 'VERIFIED'
   end
 
+  # Coexistence: the number is also in use on the WhatsApp Business app
+  def on_business_app?(phone_number_id)
+    response = HTTParty.get(
+      "#{BASE_URI}/#{@api_version}/#{phone_number_id}",
+      headers: request_headers,
+      query: { fields: 'is_on_biz_app' }
+    )
+
+    handle_response(response, 'Phone status check failed')['is_on_biz_app'] == true
+  end
+
   def subscribe_waba_webhook(waba_id, callback_url, verify_token)
     response = HTTParty.post(
       "#{BASE_URI}/#{@api_version}/#{waba_id}/subscribed_apps",

@@ -2,6 +2,9 @@ class Webhooks::WhatsappEventsJob < ApplicationJob
   queue_as :low
 
   def perform(params = {})
+    waba_id = partner_removed_waba_id(params)
+    return prompt_reauthorization_for(waba_id) if waba_id
+
     channel = find_channel_from_whatsapp_business_payload(params)
 
     if channel_is_inactive?(channel)
@@ -21,6 +24,18 @@ class Webhooks::WhatsappEventsJob < ApplicationJob
   end
 
   private
+
+  # Coexistence: the business disconnected the number from the WhatsApp Business app (or Meta did it for inactivity)
+  def partner_removed_waba_id(params)
+    change = params[:entry]&.first&.dig(:changes, 0) || {}
+    return unless change[:field] == 'account_update' && change.dig(:value, :event) == 'PARTNER_REMOVED'
+
+    change.dig(:value, :waba_info, :waba_id)
+  end
+
+  def prompt_reauthorization_for(waba_id)
+    Channel::Whatsapp.where("provider_config->>'business_account_id' = ?", waba_id).find_each(&:prompt_reauthorization!)
+  end
 
   def channel_is_inactive?(channel)
     return true if channel.blank?
