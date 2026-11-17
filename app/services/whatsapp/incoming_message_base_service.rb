@@ -13,10 +13,21 @@ class Whatsapp::IncomingMessageBaseService
       process_statuses
     elsif processed_params.try(:[], :messages).present?
       process_messages
+    elsif processed_params.try(:[], :message_echoes).present?
+      process_echoes
     end
   end
 
   private
+
+  # Coexistence: messages the business sends from the WhatsApp Business app arrive as echoes.
+  # They are mirrored as outgoing messages and hand the conversation off from the bot.
+  def process_echoes
+    @echo = true
+    @processed_params[:messages] = @processed_params[:message_echoes]
+    process_messages
+    @conversation.bot_handoff! if @conversation&.pending?
+  end
 
   def process_messages
     # We don't support reactions & ephemeral message now, we need to skip processing the message
@@ -117,7 +128,21 @@ class Whatsapp::IncomingMessageBaseService
     @message.save!
   end
 
+  def set_echo_contact
+    recipient = @processed_params[:messages].first[:to]
+    return if recipient.blank?
+
+    @contact_inbox = ::ContactInboxWithContactBuilder.new(
+      source_id: processed_waid(recipient),
+      inbox: inbox,
+      contact_attributes: { name: "+#{recipient}", phone_number: "+#{recipient}" }
+    ).perform
+    @contact = @contact_inbox.contact
+  end
+
   def set_contact
+    return set_echo_contact if @echo
+
     contact_params = @processed_params[:contacts]&.first
     return if contact_params.blank?
 
@@ -187,8 +212,8 @@ class Whatsapp::IncomingMessageBaseService
       content: message_content(message),
       account_id: @inbox.account_id,
       inbox_id: @inbox.id,
-      message_type: :incoming,
-      sender: @contact,
+      message_type: @echo ? :outgoing : :incoming,
+      sender: @echo ? nil : @contact,
       source_id: message[:id].to_s,
       in_reply_to_external_id: @in_reply_to_external_id
     }

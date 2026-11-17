@@ -29,6 +29,7 @@ describe Whatsapp::WebhookSetupService do
     allow(Whatsapp::HealthService).to receive(:new).and_return(health_service)
 
     # Default stubs for phone_number_verified? and health service
+    allow(api_client).to receive(:on_business_app?).and_return(false)
     allow(api_client).to receive(:phone_number_verified?).and_return(false)
     allow(health_service).to receive(:fetch_health_status).and_return({
                                                                         platform_type: 'APPLICABLE',
