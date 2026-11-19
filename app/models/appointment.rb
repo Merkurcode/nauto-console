@@ -39,8 +39,8 @@ class Appointment < ApplicationRecord
   # asesor responsable puede cubrir varias sucursales, así que no aplican el traslape ni el horario por asesor.
   attr_accessor :skip_advisor_validations
 
-  validate :no_overlapping_appointments, unless: :skip_advisor_validations
-  validate :within_owner_working_hours, unless: :skip_advisor_validations
+  validate :no_overlapping_appointments, unless: :skip_advisor_checks?
+  validate :within_owner_working_hours, unless: :skip_advisor_checks?
 
   # Callbacks
   before_create :generate_access_token
@@ -101,6 +101,12 @@ class Appointment < ApplicationRecord
   end
 
   private
+
+  # Sin traslape ni horario del asesor cuando: la crea o mueve un Agent Bot, la creó nauto-agents
+  # (additional_attributes.source) o la cita deja de estar agendada (cancelar, no-show, completar).
+  def skip_advisor_checks?
+    skip_advisor_validations || !scheduled? || (additional_attributes || {})['source'] == 'nauto_agents'
+  end
 
   def ended_at_after_scheduled_at
     return if ended_at.blank? || scheduled_at.blank?
