@@ -1,5 +1,6 @@
-class Webhooks::WhatsappEventsJob < ApplicationJob
+class Webhooks::WhatsappEventsJob < MutexApplicationJob
   queue_as :low
+  retry_on LockAcquisitionError, wait: 1.second, attempts: 8
 
   def perform(params = {})
     waba_id = partner_removed_waba_id(params)
@@ -12,6 +13,17 @@ class Webhooks::WhatsappEventsJob < ApplicationJob
       return
     end
 
+    sender_id = message_sender_id(params)
+    return process_events(channel, params) if sender_id.blank?
+
+    # Messages from the same sender are processed one at a time to prevent creating double conversations
+    key = format(::Redis::Alfred::WHATSAPP_MESSAGE_MUTEX, inbox_id: channel.inbox.id, sender_id: sender_id)
+    with_lock(key) { process_events(channel, params) }
+  end
+
+  private
+
+  def process_events(channel, params)
     case channel.provider
     when 'whatsapp_cloud'
       Whatsapp::IncomingMessageWhatsappCloudService.new(inbox: channel.inbox, params: params).perform
@@ -23,7 +35,11 @@ class Webhooks::WhatsappEventsJob < ApplicationJob
     track_meta_campaign_interaction(params, channel.inbox) if has_referral_data?(params)
   end
 
-  private
+  # Status updates carry no sender and don't create conversations, so they skip the lock
+  def message_sender_id(params)
+    value = params[:entry]&.first&.dig(:changes, 0, :value) || params
+    value.dig(:messages, 0, :from) || value.dig(:message_echoes, 0, :to)
+  end
 
   # Coexistence: the business disconnected the number from the WhatsApp Business app (or Meta did it for inactivity)
   def partner_removed_waba_id(params)
