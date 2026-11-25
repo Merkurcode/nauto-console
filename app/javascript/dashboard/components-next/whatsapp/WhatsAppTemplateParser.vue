@@ -47,6 +47,11 @@ const props = defineProps({
     type: Object,
     default: null,
   },
+  // Agent assigned to the conversation, used for the agent variables
+  agent: {
+    type: Object,
+    default: null,
+  },
 });
 
 const emit = defineEmits(['sendMessage', 'resetTemplate', 'back']);
@@ -67,6 +72,8 @@ const standardContactVars = computed(() =>
         'contact.first_name',
         'contact.email',
         'contact.phone_number',
+        'agent.name',
+        'agent.first_name',
       ]
     : ['contact.name', 'contact.phone_number']
 );
@@ -84,7 +91,7 @@ const resolvedParams = computed(() => {
     body: Object.fromEntries(
       Object.entries(body).map(([key, value]) => [
         key,
-        resolveContactVariables(value, props.contact),
+        resolveContactVariables(value, props.contact, props.agent),
       ])
     ),
   };
