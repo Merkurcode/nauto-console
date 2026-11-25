@@ -27,6 +27,24 @@ export const replaceTemplateVariables = (templateText, processedParams) => {
   });
 };
 
+// Replaces {{contact.name}}, {{contact.first_name}}, {{contact.email}},
+// {{contact.phone_number}} and {{custom_attr.key}} with the contact's data
+export const resolveContactVariables = (text, contact) => {
+  const values = {
+    'contact.name': contact.name,
+    'contact.first_name': contact.name?.split(' ')[0],
+    'contact.email': contact.email,
+    'contact.phone_number': contact.phone_number,
+  };
+  return text.replace(/{{\s*([^}]+?)\s*}}/g, (match, variable) => {
+    if (variable.startsWith('custom_attr.')) {
+      const key = variable.replace('custom_attr.', '');
+      return String(contact.custom_attributes?.[key] ?? '');
+    }
+    return variable in values ? values[variable] || '' : match;
+  });
+};
+
 export const buildTemplateParameters = (template, hasMediaHeaderValue) => {
   const allVariables = {};
 

@@ -15,6 +15,10 @@ export default {
       type: Number,
       default: undefined,
     },
+    contact: {
+      type: Object,
+      default: null,
+    },
   },
   emits: ['onSend', 'cancel', 'update:show'],
   data() {
@@ -71,6 +75,7 @@ export default {
       <WhatsAppTemplateReply
         v-else
         :template="selectedWaTemplate"
+        :contact="contact"
         @reset-template="onResetTemplate"
         @send-message="onSendMessage"
       />

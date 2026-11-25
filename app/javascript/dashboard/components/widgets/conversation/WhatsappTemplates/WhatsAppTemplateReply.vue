@@ -7,6 +7,10 @@ defineProps({
     type: Object,
     default: () => ({}),
   },
+  contact: {
+    type: Object,
+    default: null,
+  },
 });
 
 const emit = defineEmits(['sendMessage', 'resetTemplate']);
@@ -24,6 +28,7 @@ const handleResetTemplate = () => {
   <div class="w-full">
     <WhatsAppTemplateParser
       :template="template"
+      :contact="contact"
       @send-message="handleSendMessage"
       @reset-template="handleResetTemplate"
     >

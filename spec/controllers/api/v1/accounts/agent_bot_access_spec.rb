@@ -15,6 +15,7 @@ RSpec.describe 'Agent bot token access', type: :request do
     'product catalogs' => ->(a, _i) { "/api/v1/accounts/#{a.id}/product_catalogs" },
     'marketing campaigns' => ->(a, _i) { "/api/v1/accounts/#{a.id}/marketing_campaigns" },
     'inbox members' => ->(a, i) { "/api/v1/accounts/#{a.id}/inbox_members/#{i.id}" },
+    'inbox (working hours)' => ->(a, i) { "/api/v1/accounts/#{a.id}/inboxes/#{i.id}" },
     'account profile' => ->(a, _i) { "/api/v1/accounts/#{a.id}" },
     'labels' => ->(a, _i) { "/api/v1/accounts/#{a.id}/labels" },
     'custom attribute definitions' => ->(a, _i) { "/api/v1/accounts/#{a.id}/custom_attribute_definitions?attribute_model=contact_attribute" }
@@ -42,6 +43,19 @@ RSpec.describe 'Agent bot token access', type: :request do
     expect(response).to have_http_status(:unauthorized)
 
     get "/api/v1/accounts/#{other_account.id}", headers: headers, as: :json
+    expect(response).to have_http_status(:unauthorized)
+  end
+
+  it 'gives the bot the working hours of the inbox without letting it update the inbox' do
+    inbox.update!(working_hours_enabled: true, timezone: 'America/Mexico_City')
+
+    get "/api/v1/accounts/#{account.id}/inboxes/#{inbox.id}", headers: headers, as: :json
+    expect(response).to have_http_status(:success)
+    expect(response.parsed_body['working_hours_enabled']).to be(true)
+    expect(response.parsed_body['timezone']).to eq('America/Mexico_City')
+    expect(response.parsed_body['working_hours']).to be_an(Array)
+
+    patch "/api/v1/accounts/#{account.id}/inboxes/#{inbox.id}", headers: headers, params: { name: 'x' }, as: :json
     expect(response).to have_http_status(:unauthorized)
   end
 
