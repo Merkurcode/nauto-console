@@ -28,9 +28,12 @@ export const replaceTemplateVariables = (templateText, processedParams) => {
 };
 
 // Replaces {{contact.name}}, {{contact.first_name}}, {{contact.email}},
-// {{contact.phone_number}} and {{custom_attr.key}} with the contact's data
-export const resolveContactVariables = (text, contact) => {
+// {{contact.phone_number}} and {{custom_attr.key}} with the contact's data,
+// and {{agent.name}}, {{agent.first_name}} with the assigned agent's
+export const resolveContactVariables = (text, contact, agent = null) => {
   const values = {
+    'agent.name': agent?.name,
+    'agent.first_name': agent?.name?.split(' ')[0],
     'contact.name': contact.name,
     'contact.first_name': contact.name?.split(' ')[0],
     'contact.email': contact.email,

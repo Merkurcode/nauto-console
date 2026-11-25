@@ -19,6 +19,10 @@ export default {
       type: Object,
       default: null,
     },
+    agent: {
+      type: Object,
+      default: null,
+    },
   },
   emits: ['onSend', 'cancel', 'update:show'],
   data() {
@@ -76,6 +80,7 @@ export default {
         v-else
         :template="selectedWaTemplate"
         :contact="contact"
+        :agent="agent"
         @reset-template="onResetTemplate"
         @send-message="onSendMessage"
       />
